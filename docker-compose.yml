@@ -22,17 +22,41 @@ services:
       target: production
     container_name: ragcore-api
     command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    env_file:
+      - .env
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings.prod
-      DATABASE_URL: ${DATABASE_URL:-postgresql://ragcore:ragcore@db:5432/ragcore}
+      # --- Django ---
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-config.settings.prod}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
       DEBUG: ${DEBUG:-False}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
       SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
-      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-google}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-001}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
-      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-3072}
+
+      # --- Database ---
+      DATABASE_URL: ${DATABASE_URL:-postgresql://ragcore:ragcore@db:5432/ragcore}
+      POSTGRES_DB: ${POSTGRES_DB:-ragcore}
+      POSTGRES_USER: ${POSTGRES_USER:-ragcore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ragcore}
+
+      # --- Embeddings (generic passthrough) ---
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-openai}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_API_URL: ${EMBEDDING_API_URL:-https://api.openai.com/v1/embeddings}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1536}
+      EMBEDDING_TIMEOUT_SECONDS: ${EMBEDDING_TIMEOUT_SECONDS:-30}
+      EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-16}
+
+      # --- Ingestion / Retrieval defaults ---
+      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-20}
+      DEFAULT_CHUNK_SIZE: ${DEFAULT_CHUNK_SIZE:-500}
+      DEFAULT_CHUNK_OVERLAP: ${DEFAULT_CHUNK_OVERLAP:-80}
+      DEFAULT_TOP_K: ${DEFAULT_TOP_K:-5}
+      DEFAULT_SIMILARITY_THRESHOLD: ${DEFAULT_SIMILARITY_THRESHOLD:-0.0}
+
+      # --- API key config ---
+      API_KEY_PREFIX: ${API_KEY_PREFIX:-rag_}
+      API_KEY_LENGTH: ${API_KEY_LENGTH:-32}
     depends_on:
       db:
         condition: service_healthy

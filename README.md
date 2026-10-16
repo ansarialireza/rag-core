@@ -30,7 +30,7 @@ See `.env.example` for the required configuration values.
 - `GET /api/v1/documents/`
 - `GET /api/v1/documents/{id}/`
 - `DELETE /api/v1/documents/{id}/`
-- `POST /api/v1/retrieval/search/`
+- `POST /api/v1/search/`
 
 ## Notes
 
